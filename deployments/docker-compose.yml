@@ -1,0 +1,38 @@
+version: "3.9"
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: deployments/Dockerfile
+    container_name: smart-home-app
+    ports:
+      - "8080:8080"
+    environment:
+      - APP_PORT=8080
+    depends_on:
+      - redis
+      - victoriametrics
+
+  redis:
+    image: redis:7
+    container_name: smart-home-redis
+    ports:
+      - "6379:6379"
+
+  victoriametrics:
+    image: victoriametrics/victoria-metrics:latest
+    container_name: smart-home-metrics
+    ports:
+      - "8428:8428"
+
+  nginx:
+    image: nginx:latest
+    container_name: smart-home-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/auth.lua:/etc/nginx/auth.lua:ro
+    depends_on:
+      - app
